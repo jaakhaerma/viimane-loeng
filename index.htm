@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Marguse ja Jaagu tarkvaratehnoloogiad andmebaas</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!-- read in javascript libraries for parsing csv: https://github.com/okfn/csv.js  -->
+<script src="jquery.js"></script> 
+<script src="csv.js"></script>
+<link rel="stylesheet" type="text/css" href="mystyle.css">
+</head>
+<style>
+table, th, td {
+	border: 1px solid black;
+	border-collapse: collapse;
+	padding: 3px;
+	text-align: left;
+	border: 1px solid black;
+}
+
+</style>
+ 
+<body bgcolor="white">
+ 
+ 
+<h1>EMTA tasutud maksude andmebaas</h1>
+<p>
+EMTA andmed äriühingute ja FIE-de maksuandmete kohta 2018 IV kvartalis, kelle tööjõumaksud ei ole 0€ ja on olemas info töötajate arvu kohta.
+<p>
+Sisesta otsitav ettevõte:
+<input type="text" id="filter">
+<button type="button" onclick="filtreeri()"><b>Filtreeri!</b></button>
+<p>
+Siin on päringu tulemus:
+<p>
+<div style="color: black"id="result"></div>
+<p>
+Copywright Margus ja Jaak
+<script>
+ 
+// processdata takes data rows, builds html string and shows it in the div above
+var sisu;
+ 
+function filtreeri() {
+  sisu=document.getElementById("filter").value;
+  //alert (sisu);
+  drawdata();
+}
+ 
+ 
+function processdata(rows) {
+  
+  var rownr, colnr, row, el;
+  var result;
+  
+  // build the result html string
+  result="<table>";
+  // loop over all rows
+  for(rownr=0; rownr<rows.length; rownr++) {    
+    row=rows[rownr];
+       var v1=String(row[0]).toUpperCase();
+       if (rownr==0 ||                
+           (!sisu || (v1.includes(sisu.toUpperCase()))) ) {
+       result=result+"\n<tr>";
+       // loop over columns in one row
+       for(colnr=0; colnr<row.length; colnr++) {
+        el=row[colnr];
+                    if (rownr==0) {
+             result=result+"<th><b>"+el+"</b></th>";
+           }else {
+                                    result=result+"<td>"+el+"</td>";
+                                  }                                                            
+                               }
+       result=result+"</tr>";
+   }
+  }
+  // put the result html string into the div on the page
+  //console.log(result);
+  document.getElementById("result").innerHTML=result;  
+}
+ 
+function drawdata() {
+// take raw csv data, parse it into rows and then call processdata with the result
+// we use the CSV library from https://github.com/okfn/csv.js 
+ 
+CSV.fetch({
+    // several options to give input, by default we use the file data.csv
+    url: 'data.csv'
+    
+    // alternatively put raw data here like this:
+    //data: "ettevõte,käive, töötajaid\nSuurim,1000,45\nKeskmine,2000,500\nPisike,9000,2\nMikro,200,1\n" 
+                
+    // also an alternative
+    //file: an HTML 5 file object
+    
+    // optional options about structure of the CSV file
+    // following the CSV Dialect Description Format 
+    // https://frictionlessdata.io/specs/csv-dialect/
+    /*
+    dialect: {
+      ...
+    }
+    */
+  }
+).done(function(dataset) {  
+  // console.log(dataset); // optional debugging    
+  var allrows;
+  // put the dataset field list and dataset records into one array of all rows
+  allrows=dataset.records;
+  allrows.unshift(dataset.fields);  
+  // call our program for building html
+  processdata(allrows);
+});
+ 
+}
+ 
+drawdata();
+ 
+</script>
+ 
+</body>
+</html>
